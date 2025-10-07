@@ -9,20 +9,19 @@ interface VisitorFormProps {
 
 const visitPurposes: VisitPurpose[] = [
   { id: '1', label: '面談・会議', category: 'meeting' },
-  { id: '2', label: '入学相談', category: 'interview' },
-  { id: '3', label: '配送・納品', category: 'delivery' },
-  { id: '4', label: '設備点検・工事', category: 'maintenance' },
+  { id: '2', label: '配送・納品', category: 'delivery' },
+  { id: '3', label: '設備点検・工事', category: 'maintenance' },
+  { id: '4', label: '入学相談', category: 'interview' },
   { id: '5', label: 'その他', category: 'other' },
 ];
 
 const departments = [
-  '応接室',
-  '事務室',
-  '校長室',
   '１階 ロビー',
   '１階 会議室',
   '２階 職員室',
   '８階 大教室',
+  '事務室',
+  '校長室',
   'その他 校舎内',
 ];
 
@@ -36,7 +35,7 @@ const contactPersons = [
   '入試広報課）伊東',
   '事務室）古橋',
   '事務室）加藤',
-  '（その他、不明）',
+  'その他 不明',
 ];
 
 const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
@@ -167,7 +166,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <User className="inline w-4 h-4 mr-1" />
-              お名前 （複数人の場合には代表者）*
+              お名前 （複数人の場合には代表１名）*
             </label>
             <input
               type="text"
