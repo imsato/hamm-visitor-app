@@ -53,6 +53,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
   });
 
   const [otherPurposeText, setOtherPurposeText] = useState('');
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -67,8 +68,14 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
       }));
     } else if (name === 'otherPurpose') {
       setOtherPurposeText(value);
-      setFormData(prev => ({ ...prev, purpose: `その他: ${value}` }));
+      setFormData(prev => ({ ...prev, purpose: value ? `その他: ${value}` : 'その他' }));
     } else {
+      if (name === 'purpose') {
+        setIsOtherSelected(value === 'その他');
+        if (value !== 'その他') {
+          setOtherPurposeText('');
+        }
+      }
       setFormData(prev => ({ ...prev, [name]: value }));
     }
     if (errors[name]) {
@@ -266,7 +273,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
                   type="radio"
                   name="purpose"
                   value={purpose.label}
-                  checked={formData.purpose === purpose.label}
+                  checked={purpose.label === 'その他' ? isOtherSelected : formData.purpose === purpose.label}
                   onChange={handleInputChange}
                   className="sr-only"
                 />
@@ -274,7 +281,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
               </label>
             ))}
           </div>
-          {formData.purpose === 'その他' && (
+          {isOtherSelected && (
             <textarea
               name="otherPurpose"
               value={otherPurposeText}
