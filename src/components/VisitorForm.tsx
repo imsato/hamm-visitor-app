@@ -64,6 +64,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
         [name]: hasParking,
         vehicleNumber: hasParking ? prev.vehicleNumber : '' // 駐車なしの場合は車両ナンバーをクリア
       }));
+    } else if (name === 'otherPurpose') {
+      // 「その他」のテキスト入力の場合
+      setFormData(prev => ({ ...prev, purpose: value }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -272,8 +275,8 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           </div>
           {formData.purpose === 'その他' && (
             <textarea
-              name="purpose"
-              value={formData.purpose}
+              name="otherPurpose"
+              value={formData.purpose === 'その他' ? formData.purpose : ''}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
               placeholder="詳細をご記入ください"
