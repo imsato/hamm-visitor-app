@@ -195,7 +195,7 @@ function App() {
                   <Users className="w-6 h-6 text-yellow-600" />
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">本日の来客状況</h3>
-                    <p className="text-gray-600">現在在館中: {activeVisitors.length}名</p>
+                    <p className="text-gray-600">現在　在館中: {activeVisitors.length}名</p>
                   </div>
                 </div>
                 <div className="text-right">
