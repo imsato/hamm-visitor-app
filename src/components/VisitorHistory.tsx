@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Building, Clock, AlertCircle, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { User, Building, Clock, AlertCircle, ChevronLeft, ChevronRight, RotateCcw, Users } from 'lucide-react';
 import { Visitor } from '../types/visitor';
 
 interface VisitorHistoryProps {
