@@ -85,19 +85,19 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                   <div key={visitor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div className="flex items-center space-x-2 md:col-span-2">
+                        <div className="flex items-center space-x-2 md:col-span-1">
                           <User className="w-5 h-5 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">{visitor.name}</p>
-                            <p className="text-sm text-gray-500 truncate">{visitor.company}</p>
+                            <p className="text-sm text-gray-500">{visitor.company}</p>
                           </div>
                         </div>
 
                         <div className="flex items-center space-x-2">
                           <Building className="w-5 h-5 text-gray-400" />
-                          <div className="min-w-0">
+                          <div>
                             <p className="font-medium text-gray-900">{visitor.department}</p>
-                            <p className="text-sm text-gray-500 truncate">{visitor.contactPerson}</p>
+                            <p className="text-sm text-gray-500">{visitor.contactPerson}</p>
                           </div>
                         </div>
 
@@ -135,11 +135,11 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                           </div>
                         </div>
 
-                        <div className="flex items-center">
+                        <div className="flex items-center justify-end">
                           {visitor.status === 'checked-in' && (
                             <button
                               onClick={() => handleRetroactiveCheckOut(visitor.id, visitor.name)}
-                              className="flex items-center space-x-1 bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs"
+                              className="flex items-center space-x-1 bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                             >
                               <AlertCircle className="w-4 h-4" />
                               <span>？在館中</span>
