@@ -40,6 +40,13 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
     }
   };
 
+  const formatVisitorCount = (count: number) => {
+    if (count === 1) return '１名';
+    if (count === 2) return '２名';
+    if (count === 3) return '３名';
+    return '４名以上';
+  };
+
   const totalPages = Math.ceil(visitors.length / ITEMS_PER_PAGE);
   const startIndex = currentPage * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
