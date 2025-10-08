@@ -84,7 +84,7 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                 {currentVisitors.map((visitor) => (
                   <div key={visitor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-4">
                         <div className="flex items-center space-x-3">
                           <User className="w-5 h-5 text-gray-400" />
                           <div>
@@ -98,6 +98,14 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                           <div>
                             <p className="font-medium text-gray-900">{visitor.department}</p>
                             <p className="text-sm text-gray-500">{visitor.contactPerson}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <Users className="w-5 h-5 text-gray-400" />
+                          <div>
+                            <p className="font-medium text-gray-900">{formatVisitorCount(visitor.visitorCount)}</p>
+                            <p className="text-sm text-gray-500">来館人数</p>
                           </div>
                         </div>
 
