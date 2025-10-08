@@ -84,24 +84,24 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                 {currentVisitors.map((visitor) => (
                   <div key={visitor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-4">
-                        <div className="flex items-center space-x-3">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-3">
+                        <div className="flex items-center space-x-2 md:col-span-2">
                           <User className="w-5 h-5 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">{visitor.name}</p>
-                            <p className="text-sm text-gray-500">{visitor.company}</p>
+                            <p className="text-sm text-gray-500 truncate">{visitor.company}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <Building className="w-5 h-5 text-gray-400" />
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium text-gray-900">{visitor.department}</p>
-                            <p className="text-sm text-gray-500">{visitor.contactPerson}</p>
+                            <p className="text-sm text-gray-500 truncate">{visitor.contactPerson}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <Users className="w-5 h-5 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">{formatVisitorCount(visitor.visitorCount)}</p>
@@ -109,7 +109,7 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <Clock className="w-5 h-5 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">{formatDate(visitor.checkInTime)}</p>
@@ -117,7 +117,7 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <div>
                             {visitor.status === 'checked-out' ? (
                               <>
@@ -139,7 +139,7 @@ const VisitorHistory: React.FC<VisitorHistoryProps> = ({ visitors, onCheckOut })
                           {visitor.status === 'checked-in' && (
                             <button
                               onClick={() => handleRetroactiveCheckOut(visitor.id, visitor.name)}
-                              className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg transition-colors text-sm"
+                              className="flex items-center space-x-1 bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs"
                             >
                               <AlertCircle className="w-4 h-4" />
                               <span>？在館中</span>
