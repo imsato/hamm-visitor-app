@@ -51,7 +51,14 @@ export const useVisitors = () => {
           .select('*')
           .order('check_in_time', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          // テーブルが存在しない場合の特別な処理
+          if (error.code === 'PGRST116' || error.message.includes('Could not find the table')) {
+            console.warn('visitorsテーブルが見つかりません。ローカルストレージを使用します。');
+            throw new Error('DATABASE_TABLE_NOT_FOUND');
+          }
+          throw error;
+        }
 
         const formattedVisitors: Visitor[] = data.map(visitor => ({
           id: visitor.id,
@@ -75,7 +82,13 @@ export const useVisitors = () => {
         setError(null);
         setUseLocalStorage(false);
       } catch (supabaseError) {
-        console.warn('Supabase接続に失敗、ローカルストレージを使用:', supabaseError);
+        const errorMessage = supabaseError instanceof Error ? supabaseError.message : String(supabaseError);
+        
+        if (errorMessage === 'DATABASE_TABLE_NOT_FOUND') {
+          console.warn('データベーステーブルが見つかりません。ローカルストレージを使用します。');
+        } else {
+          console.warn('Supabase接続に失敗、ローカルストレージを使用:', supabaseError);
+        }
         
         // ローカルストレージからデータを取得
         const localData = getLocalData();
@@ -102,7 +115,7 @@ export const useVisitors = () => {
       
       setVisitors(formattedLocalData);
       setUseLocalStorage(true);
-      setError('データベース接続に失敗しました。ローカルデータを使用しています。');
+      setError(null); // エラーメッセージを表示せず、ローカルストレージで動作
     } finally {
       setLoading(false);
     }
@@ -153,9 +166,12 @@ export const useVisitors = () => {
             .select()
             .single();
 
-          if (error) throw error;
-
-          newVisitor.id = data.id;
+          if (error) {
+            console.warn('Supabase登録に失敗、ローカルストレージを使用:', error);
+            setUseLocalStorage(true);
+          } else {
+            newVisitor.id = data.id;
+          }
         } catch (supabaseError) {
           console.warn('Supabase登録に失敗、ローカルストレージを使用:', supabaseError);
           setUseLocalStorage(true);
