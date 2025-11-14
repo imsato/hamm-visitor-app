@@ -9,11 +9,11 @@ interface VisitorFormProps {
 
 const visitPurposes: VisitPurpose[] = [
   { id: '1', label: '面談・会議', category: 'meeting' },
-  { id: '2', label: '配送・納品', category: 'delivery' },
-  { id: '3', label: '設備点検・工事', category: 'maintenance' },
-  { id: '4', label: '入学相談・学校見学', category: 'interview' },
-  { id: '4', label: '在学相談・三者面談', category: 'interview' },
-  { id: '5', label: 'その他', category: 'other' },
+  { id: '2', label: '授業・講演', category: 'interview' },
+  { id: '3', label: '配送・納品', category: 'delivery' },
+  { id: '4', label: '設備点検・工事', category: 'maintenance' },
+  { id: '5', label: '入学相談・学校見学', category: 'interview' },
+  { id: '6', label: 'その他', category: 'other' },
 ];
 
 const departments = [
