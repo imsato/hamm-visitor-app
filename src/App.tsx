@@ -4,6 +4,7 @@ import Header from './components/Header';
 import VisitorForm from './components/VisitorForm';
 import VisitorBadge from './components/VisitorBadge';
 import VisitorList from './components/VisitorList';
+import StorageStatus from './components/StorageStatus';
 import { useVisitors } from './hooks/useVisitors';
 import { Visitor } from './types/visitor';
 import VisitorHistory from './components/VisitorHistory';
@@ -13,7 +14,7 @@ type AppState = 'home' | 'form' | 'badge' | 'list' | 'history';
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('home');
   const [currentVisitor, setCurrentVisitor] = useState<Visitor | null>(null);
-  const { visitors, loading, error, addVisitor, checkOutVisitor, cancelCheckOut, getTodaysVisitors, getHistoryVisitors } = useVisitors();
+  const { visitors, loading, error, useLocalStorage, addVisitor, checkOutVisitor, cancelCheckOut, getTodaysVisitors, getHistoryVisitors } = useVisitors();
 
   const handleNewVisitor = () => {
     setCurrentState('form');
@@ -245,6 +246,8 @@ function App() {
           <p>&copy; 2024 浜松未来総合専門学校 来客受付システム</p>
         </div>
       </footer>
+
+      <StorageStatus useLocalStorage={useLocalStorage} />
     </div>
   );
 }

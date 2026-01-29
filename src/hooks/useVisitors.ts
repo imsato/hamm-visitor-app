@@ -42,25 +42,30 @@ export const useVisitors = () => {
   const fetchVisitors = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Supabase接続を試行
       try {
         const { supabase } = await import('../lib/supabase');
-        const { data, error } = await supabase
+
+        // タイムアウト付きでfetchを実行（5秒）
+        const fetchPromise = supabase
           .from('visitors')
           .select('*')
           .order('check_in_time', { ascending: false });
 
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('CONNECTION_TIMEOUT')), 5000)
+        );
+
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        const { data, error } = result as any;
+
         if (error) {
-          // テーブルが存在しない場合の特別な処理
-          if (error.code === 'PGRST116' || error.message.includes('Could not find the table')) {
-            console.warn('visitorsテーブルが見つかりません。ローカルストレージを使用します。');
-            throw new Error('DATABASE_TABLE_NOT_FOUND');
-          }
-          throw error;
+          console.warn('Supabaseエラー、ローカルストレージにフォールバック:', error.code || error.message);
+          throw new Error('DATABASE_ERROR');
         }
 
-        const formattedVisitors: Visitor[] = data.map(visitor => ({
+        const formattedVisitors: Visitor[] = data.map((visitor: any) => ({
           id: visitor.id,
           name: visitor.name,
           company: visitor.company,
@@ -81,15 +86,12 @@ export const useVisitors = () => {
         setVisitors(formattedVisitors);
         setError(null);
         setUseLocalStorage(false);
+        console.log('Supabaseからデータを正常に取得しました');
       } catch (supabaseError) {
         const errorMessage = supabaseError instanceof Error ? supabaseError.message : String(supabaseError);
-        
-        if (errorMessage === 'DATABASE_TABLE_NOT_FOUND') {
-          console.warn('データベーステーブルが見つかりません。ローカルストレージを使用します。');
-        } else {
-          console.warn('Supabase接続に失敗、ローカルストレージを使用:', supabaseError);
-        }
-        
+
+        console.warn('Supabase接続に失敗、ローカルストレージを使用:', errorMessage);
+
         // ローカルストレージからデータを取得
         const localData = getLocalData();
         const formattedLocalData: Visitor[] = localData.map(visitor => ({
@@ -97,14 +99,14 @@ export const useVisitors = () => {
           checkInTime: new Date(visitor.checkInTime),
           checkOutTime: visitor.checkOutTime ? new Date(visitor.checkOutTime) : undefined,
         }));
-        
+
         setVisitors(formattedLocalData);
         setError(null);
         setUseLocalStorage(true);
       }
     } catch (err) {
       console.error('データ取得エラー:', err);
-      
+
       // 最終的にローカルストレージを使用
       const localData = getLocalData();
       const formattedLocalData: Visitor[] = localData.map(visitor => ({
@@ -112,7 +114,7 @@ export const useVisitors = () => {
         checkInTime: new Date(visitor.checkInTime),
         checkOutTime: visitor.checkOutTime ? new Date(visitor.checkOutTime) : undefined,
       }));
-      
+
       setVisitors(formattedLocalData);
       setUseLocalStorage(true);
       setError(null); // エラーメッセージを表示せず、ローカルストレージで動作
@@ -148,7 +150,9 @@ export const useVisitors = () => {
       if (!useLocalStorage) {
         try {
           const { supabase } = await import('../lib/supabase');
-          const { data, error } = await supabase
+
+          // タイムアウト付きでinsertを実行
+          const insertPromise = supabase
             .from('visitors')
             .insert({
               name: visitorData.name,
@@ -166,6 +170,13 @@ export const useVisitors = () => {
             .select()
             .single();
 
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('INSERT_TIMEOUT')), 5000)
+          );
+
+          const result = await Promise.race([insertPromise, timeoutPromise]);
+          const { data, error } = result as any;
+
           if (error) {
             console.warn('Supabase登録に失敗、ローカルストレージを使用:', error);
             setUseLocalStorage(true);
@@ -178,18 +189,18 @@ export const useVisitors = () => {
         }
       }
 
-      const updatedVisitors = [newVisitor, ...visitors];
-      setVisitors(updatedVisitors);
-      
-      // ローカルストレージに保存
-      saveLocalData(updatedVisitors);
-      
+      setVisitors(prev => {
+        const updatedVisitors = [newVisitor, ...prev];
+        saveLocalData(updatedVisitors);
+        return updatedVisitors;
+      });
+
       return newVisitor;
     } catch (err) {
       setError(err instanceof Error ? err.message : '来客者の登録に失敗しました');
       throw err;
     }
-  }, []);
+  }, [useLocalStorage]);
 
   const checkOutVisitor = useCallback(async (visitorId: string) => {
     try {
@@ -327,6 +338,7 @@ export const useVisitors = () => {
     visitors,
     loading,
     error,
+    useLocalStorage,
     addVisitor,
     checkOutVisitor,
     cancelCheckOut,
