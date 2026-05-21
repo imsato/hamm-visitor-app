@@ -1,0 +1,9 @@
+[
+  { "name": "１階 ロビー",   "order": 1 },
+  { "name": "１階 会議室",   "order": 2 },
+  { "name": "２階 職員室",   "order": 3 },
+  { "name": "８階 大教室",   "order": 4 },
+  { "name": "事務室",        "order": 5 },
+  { "name": "校長室",        "order": 6 },
+  { "name": "その他 校舎内", "order": 7 }
+]

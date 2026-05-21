@@ -1,0 +1,11 @@
+[
+  { "staffID": 0, "staname": "佐藤 雅一", "statitle": "校長",    "departmentId": "kochou",   "order": 1 },
+  { "staffID": 0, "staname": "小澤 穔",   "statitle": "教務課長", "departmentId": "kyoumu",   "order": 2 },
+  { "staffID": 0, "staname": "鈴木 塁",   "statitle": "教務課長", "departmentId": "kyoumu",   "order": 3 },
+  { "staffID": 0, "staname": "川波",      "statitle": null,       "departmentId": "shushoku", "order": 4 },
+  { "staffID": 0, "staname": "井本",      "statitle": null,       "departmentId": "shushoku", "order": 5 },
+  { "staffID": 0, "staname": "久野",      "statitle": null,       "departmentId": "nyushi",   "order": 6 },
+  { "staffID": 0, "staname": "伊東",      "statitle": null,       "departmentId": "nyushi",   "order": 7 },
+  { "staffID": 0, "staname": "古橋",      "statitle": null,       "departmentId": "jimu",     "order": 8 },
+  { "staffID": 0, "staname": "加藤",      "statitle": null,       "departmentId": "jimu",     "order": 9 }
+]

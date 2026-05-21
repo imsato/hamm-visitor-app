@@ -1,0 +1,30 @@
+name: Import Master Data to Firestore
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: '実行確認（"yes" と入力してください）'
+        required: true
+        default: 'no'
+
+jobs:
+  import:
+    if: github.event.inputs.confirm == 'yes'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: scripts
+
+      - name: Run import script
+        run: node import-masters.js
+        working-directory: scripts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

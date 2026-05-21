@@ -1,0 +1,7 @@
+[
+  { "id": "kochou",   "depname": "校長",     "order": 1 },
+  { "id": "kyoumu",   "depname": "教務課",   "order": 2 },
+  { "id": "shushoku", "depname": "就職支援課", "order": 3 },
+  { "id": "nyushi",   "depname": "入試広報課", "order": 4 },
+  { "id": "jimu",     "depname": "事務室",   "order": 5 }
+]
