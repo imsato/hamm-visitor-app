@@ -1,11 +1,11 @@
 [
-  { "name": "１階 ロビー",   "order": 1 },
-  { "name": "１階 会議室",   "order": 2 },
-  { "name": "２階 職員室",   "order": 3 },
-  { "name": "８階 大教室",   "order": 4 },
-  { "name": "事務室",        "order": 5 },
-  { "name": "校長室",        "order": 6 },
-  { "name": "屋上・エレベーター",        "order": 7 },
-  { "name": "1階校舎周辺",        "order": 8 },
-  { "name": "その他 校舎内", "order": 7 }
+  {"firestoreId": "oflob4HytCmOI34zE6cH", "name": "１階 ロビー", "order": 1},
+  {"firestoreId": "sdVN8e4QVnyvSd1llDAQ", "name": "１階 会議室", "order": 2},
+  {"firestoreId": "4z5q0IaW4XSxaGNM4eTq", "name": "２階 職員室", "order": 3},
+  {"firestoreId": "jkiDN5Mkn70QnBF93iVC", "name": "８階 大教室", "order": 4},
+  {"firestoreId": "QRrg8ceyQ07iz4hv57xK", "name": "事務室", "order": 5},
+  {"firestoreId": "0UK8xDgyIHuK7kOozVDA", "name": "校長室", "order": 6},
+  {"firestoreId": "Hmo6cXn0hARLvhtUa5Hk", "name": "その他 校舎内", "order": 7},
+  {"firestoreId": "r0yquDz410L9zoNUCTD0", "name": "屋上・エレベーター", "order": 7},
+  {"firestoreId": "j7jmzcA6Yl86GpZUirfb", "name": "1階校舎周辺", "order": 8}
 ]
