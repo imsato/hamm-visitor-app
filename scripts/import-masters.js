@@ -47,12 +47,14 @@ async function importDepartments(data) {
 async function importStaff(data) {
   const col = db.collection('staff');
   for (const { firestoreId, ...fields } of data) {
+    // staffIDを常に7桁ゼロ埋め文字列に正規化
+    fields.staffID = String(fields.staffID || '0').padStart(7, '0');
     if (firestoreId) {
       await col.doc(firestoreId).set(fields);
-      console.log(`  staff [更新]: ${fields.staname} (${firestoreId})`);
+      console.log(`  staff [更新]: ${fields.staname} staffID:${fields.staffID} (${firestoreId})`);
     } else {
       const ref = await col.add(fields);
-      console.log(`  staff [新規]: ${fields.staname} → ${ref.id}`);
+      console.log(`  staff [新規]: ${fields.staname} staffID:${fields.staffID} → ${ref.id}`);
     }
   }
 }
