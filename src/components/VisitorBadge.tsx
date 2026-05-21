@@ -58,6 +58,16 @@ const VisitorBadge: React.FC<VisitorBadgeProps> = ({ visitor, onPrint, onNewVisi
               </div>
             </div>
 
+            {visitor.contactDepartment && (
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-yellow-600" />
+                <div>
+                  <p className="text-sm text-gray-600">面会担当</p>
+                  <p className="font-medium">{visitor.contactDepartment}　{visitor.contactPerson}</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center space-x-3">
               <Clock className="w-5 h-5 text-yellow-600" />
               <div>

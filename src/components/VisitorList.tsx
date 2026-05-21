@@ -61,7 +61,9 @@ const VisitorList: React.FC<VisitorListProps> = ({ visitors, onCheckOut, onCance
                         <Building className="w-5 h-5 text-gray-400" />
                         <div>
                           <p className="font-medium text-gray-900">{visitor.department}</p>
-                          <p className="text-sm text-gray-500">{visitor.contactPerson}</p>
+                          <p className="text-sm text-gray-500">
+                            {visitor.contactDepartment && `${visitor.contactDepartment}　`}{visitor.contactPerson}
+                          </p>
                         </div>
                       </div>
 
