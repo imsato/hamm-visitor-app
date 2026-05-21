@@ -1,10 +1,19 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Visitor } from '../types/visitor';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+  query,
+  orderBy,
+  Timestamp,
+  serverTimestamp,
+} from 'firebase/firestore';
 
-// ローカルストレージのキー
 const LOCAL_STORAGE_KEY = 'visitor_app_data';
 
-// ローカルストレージからデータを取得
 const getLocalData = (): Visitor[] => {
   try {
     const data = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -14,7 +23,6 @@ const getLocalData = (): Visitor[] => {
   }
 };
 
-// ローカルストレージにデータを保存
 const saveLocalData = (visitors: Visitor[]) => {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(visitors));
@@ -23,115 +31,92 @@ const saveLocalData = (visitors: Visitor[]) => {
   }
 };
 
-// UUIDを生成する簡単な関数
-const generateId = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-};
-
 export const useVisitors = () => {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useLocalStorage, setUseLocalStorage] = useState(false);
 
-  // Supabaseから来客者データを取得を試行
   const fetchVisitors = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Supabase接続を試行
       try {
-        const { supabase } = await import('../lib/supabase');
+        const { db } = await import('../lib/firebase');
 
-        // タイムアウト付きでfetchを実行（5秒）
-        const fetchPromise = supabase
-          .from('visitors')
-          .select('*')
-          .order('check_in_time', { ascending: false });
-
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('CONNECTION_TIMEOUT')), 5000)
+        const q = query(
+          collection(db, 'visitors'),
+          orderBy('checkInTime', 'desc')
         );
 
-        const result = await Promise.race([fetchPromise, timeoutPromise]);
-        const { data, error } = result as any;
+        const snapshot = await getDocs(q);
 
-        if (error) {
-          console.warn('Supabaseエラー、ローカルストレージにフォールバック:', error.code || error.message);
-          throw new Error('DATABASE_ERROR');
-        }
-
-        const formattedVisitors: Visitor[] = data.map((visitor: any) => ({
-          id: visitor.id,
-          name: visitor.name,
-          company: visitor.company,
-          department: visitor.department,
-          contactPerson: visitor.contact_person,
-          purpose: visitor.purpose,
-          phone: visitor.phone,
-          email: visitor.email || '',
-          visitorCount: visitor.visitor_count,
-          hasParking: visitor.has_parking || false,
-          vehicleNumber: visitor.vehicle_number || undefined,
-          checkInTime: new Date(visitor.check_in_time),
-          checkOutTime: visitor.check_out_time ? new Date(visitor.check_out_time) : undefined,
-          status: visitor.status,
-          badgeNumber: visitor.badge_number || undefined,
-        }));
+        const formattedVisitors: Visitor[] = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            name: data.name,
+            company: data.company,
+            department: data.department,
+            contactPerson: data.contactPerson,
+            purpose: data.purpose,
+            phone: data.phone,
+            email: data.email || '',
+            visitorCount: data.visitorCount,
+            hasParking: data.hasParking || false,
+            vehicleNumber: data.vehicleNumber || undefined,
+            checkInTime: data.checkInTime instanceof Timestamp
+              ? data.checkInTime.toDate()
+              : new Date(data.checkInTime),
+            checkOutTime: data.checkOutTime instanceof Timestamp
+              ? data.checkOutTime.toDate()
+              : data.checkOutTime ? new Date(data.checkOutTime) : undefined,
+            status: data.status,
+            badgeNumber: data.badgeNumber || undefined,
+          };
+        });
 
         setVisitors(formattedVisitors);
         setError(null);
         setUseLocalStorage(false);
-        console.log('Supabaseからデータを正常に取得しました');
-      } catch (supabaseError) {
-        const errorMessage = supabaseError instanceof Error ? supabaseError.message : String(supabaseError);
-
-        console.warn('Supabase接続に失敗、ローカルストレージを使用:', errorMessage);
-
-        // ローカルストレージからデータを取得
+        console.log('Firestoreからデータを正常に取得しました');
+      } catch (firebaseError) {
+        console.warn('Firebase接続に失敗、ローカルストレージを使用:', firebaseError);
         const localData = getLocalData();
         const formattedLocalData: Visitor[] = localData.map(visitor => ({
           ...visitor,
           checkInTime: new Date(visitor.checkInTime),
           checkOutTime: visitor.checkOutTime ? new Date(visitor.checkOutTime) : undefined,
         }));
-
         setVisitors(formattedLocalData);
         setError(null);
         setUseLocalStorage(true);
       }
     } catch (err) {
       console.error('データ取得エラー:', err);
-
-      // 最終的にローカルストレージを使用
       const localData = getLocalData();
       const formattedLocalData: Visitor[] = localData.map(visitor => ({
         ...visitor,
         checkInTime: new Date(visitor.checkInTime),
         checkOutTime: visitor.checkOutTime ? new Date(visitor.checkOutTime) : undefined,
       }));
-
       setVisitors(formattedLocalData);
       setUseLocalStorage(true);
-      setError(null); // エラーメッセージを表示せず、ローカルストレージで動作
+      setError(null);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 初回データ取得
   useEffect(() => {
     fetchVisitors();
   }, [fetchVisitors]);
 
   const addVisitor = useCallback(async (visitorData: Omit<Visitor, 'id' | 'checkInTime' | 'status'>) => {
     try {
+      const checkInTime = new Date();
       const newVisitor: Visitor = {
-        id: generateId(),
+        id: crypto.randomUUID(),
         name: visitorData.name,
         company: visitorData.company,
         department: visitorData.department,
@@ -142,57 +127,43 @@ export const useVisitors = () => {
         visitorCount: visitorData.visitorCount || 1,
         hasParking: visitorData.hasParking,
         vehicleNumber: visitorData.vehicleNumber || undefined,
-        checkInTime: new Date(),
-        status: 'checked-in' as const,
+        checkInTime,
+        status: 'checked-in',
         badgeNumber: undefined,
       };
 
       if (!useLocalStorage) {
         try {
-          const { supabase } = await import('../lib/supabase');
-
-          // タイムアウト付きでinsertを実行
-          const insertPromise = supabase
-            .from('visitors')
-            .insert({
-              name: visitorData.name,
-              company: visitorData.company,
-              department: visitorData.department,
-              contact_person: visitorData.contactPerson,
-              purpose: visitorData.purpose,
-              phone: visitorData.phone,
-              email: visitorData.email || null,
-              visitor_count: visitorData.visitorCount || 1,
-              has_parking: visitorData.hasParking,
-              vehicle_number: visitorData.vehicleNumber || null,
-              status: 'checked-in',
-            })
-            .select()
-            .single();
-
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('INSERT_TIMEOUT')), 5000)
-          );
-
-          const result = await Promise.race([insertPromise, timeoutPromise]);
-          const { data, error } = result as any;
-
-          if (error) {
-            console.warn('Supabase登録に失敗、ローカルストレージを使用:', error);
-            setUseLocalStorage(true);
-          } else {
-            newVisitor.id = data.id;
-          }
-        } catch (supabaseError) {
-          console.warn('Supabase登録に失敗、ローカルストレージを使用:', supabaseError);
+          const { db } = await import('../lib/firebase');
+          const docRef = await addDoc(collection(db, 'visitors'), {
+            name: visitorData.name,
+            company: visitorData.company,
+            department: visitorData.department,
+            contactPerson: visitorData.contactPerson,
+            purpose: visitorData.purpose,
+            phone: visitorData.phone,
+            email: visitorData.email || null,
+            visitorCount: visitorData.visitorCount || 1,
+            hasParking: visitorData.hasParking,
+            vehicleNumber: visitorData.vehicleNumber || null,
+            checkInTime: Timestamp.fromDate(checkInTime),
+            checkOutTime: null,
+            status: 'checked-in',
+            badgeNumber: null,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+          newVisitor.id = docRef.id;
+        } catch (firebaseError) {
+          console.warn('Firebase登録に失敗、ローカルストレージを使用:', firebaseError);
           setUseLocalStorage(true);
         }
       }
 
       setVisitors(prev => {
-        const updatedVisitors = [newVisitor, ...prev];
-        saveLocalData(updatedVisitors);
-        return updatedVisitors;
+        const updated = [newVisitor, ...prev];
+        saveLocalData(updated);
+        return updated;
       });
 
       return newVisitor;
@@ -205,55 +176,34 @@ export const useVisitors = () => {
   const checkOutVisitor = useCallback(async (visitorId: string) => {
     try {
       const visitor = visitors.find(v => v.id === visitorId);
-      if (!visitor) {
-        throw new Error('来客者が見つかりません');
-      }
-      
-      if (visitor.status === 'checked-out') {
-        throw new Error('この来客者は既に退館済みです');
-      }
-      
-      const checkOutTime = new Date().toISOString();
-      
+      if (!visitor) throw new Error('来客者が見つかりません');
+      if (visitor.status === 'checked-out') throw new Error('この来客者は既に退館済みです');
+
+      const checkOutTime = new Date();
+
       if (!useLocalStorage) {
         try {
-          const { supabase } = await import('../lib/supabase');
-          const { error: updateError } = await supabase
-            .from('visitors')
-            .update({
-              status: 'checked-out',
-              check_out_time: checkOutTime,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', visitorId);
-
-          if (updateError) {
-            console.warn('Supabase更新に失敗、ローカルストレージを使用:', updateError);
-            setUseLocalStorage(true);
-          }
-        } catch (supabaseError) {
-          console.warn('Supabase更新に失敗、ローカルストレージを使用:', supabaseError);
+          const { db } = await import('../lib/firebase');
+          await updateDoc(doc(db, 'visitors', visitorId), {
+            status: 'checked-out',
+            checkOutTime: Timestamp.fromDate(checkOutTime),
+            updatedAt: serverTimestamp(),
+          });
+        } catch (firebaseError) {
+          console.warn('Firebase更新に失敗、ローカルストレージを使用:', firebaseError);
           setUseLocalStorage(true);
         }
       }
 
-      // ローカル状態を即座に更新
-      const updatedVisitors = visitors.map(visitor => 
-        visitor.id === visitorId 
-          ? { ...visitor, status: 'checked-out' as const, checkOutTime: new Date(checkOutTime) }
-          : visitor
-      );
-      
-      setVisitors(updatedVisitors);
-      saveLocalData(updatedVisitors);
-      
-      setVisitors(prev => 
-        prev.map(visitor => 
-          visitor.id === visitorId 
-            ? { ...visitor, status: 'checked-out' as const, checkOutTime: new Date(checkOutTime) }
-            : visitor
-        )
-      );
+      setVisitors(prev => {
+        const updated = prev.map(v =>
+          v.id === visitorId
+            ? { ...v, status: 'checked-out' as const, checkOutTime }
+            : v
+        );
+        saveLocalData(updated);
+        return updated;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '退館処理に失敗しました');
       throw err;
@@ -263,59 +213,40 @@ export const useVisitors = () => {
   const cancelCheckOut = useCallback(async (visitorId: string) => {
     try {
       const visitor = visitors.find(v => v.id === visitorId);
-      if (!visitor) {
-        throw new Error('来客者が見つかりません');
-      }
-      
+      if (!visitor) throw new Error('来客者が見つかりません');
+
       if (!useLocalStorage) {
         try {
-          const { supabase } = await import('../lib/supabase');
-          const { error } = await supabase
-            .from('visitors')
-            .update({
-              status: 'checked-in',
-              check_out_time: null,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', visitorId);
-
-          if (error) {
-            console.warn('Supabase更新に失敗、ローカルストレージを使用:', error);
-            setUseLocalStorage(true);
-          }
-        } catch (supabaseError) {
-          console.warn('Supabase更新に失敗、ローカルストレージを使用:', supabaseError);
+          const { db } = await import('../lib/firebase');
+          await updateDoc(doc(db, 'visitors', visitorId), {
+            status: 'checked-in',
+            checkOutTime: null,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (firebaseError) {
+          console.warn('Firebase更新に失敗、ローカルストレージを使用:', firebaseError);
           setUseLocalStorage(true);
         }
       }
 
-      // ローカル状態を更新
-      const updatedVisitors = visitors.map(visitor => 
-        visitor.id === visitorId 
-          ? { ...visitor, status: 'checked-in' as const, checkOutTime: undefined }
-          : visitor
-      );
-      
-      setVisitors(updatedVisitors);
-      saveLocalData(updatedVisitors);
-      
-      setVisitors(prev => 
-        prev.map(visitor => 
-          visitor.id === visitorId 
-            ? { ...visitor, status: 'checked-in' as const, checkOutTime: undefined }
-            : visitor
-        )
-      );
+      setVisitors(prev => {
+        const updated = prev.map(v =>
+          v.id === visitorId
+            ? { ...v, status: 'checked-in' as const, checkOutTime: undefined }
+            : v
+        );
+        saveLocalData(updated);
+        return updated;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '退館取消処理に失敗しました');
       throw err;
     }
   }, [visitors, useLocalStorage]);
-  
+
   const getTodaysVisitors = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
     return visitors.filter(visitor => {
       const visitorDate = new Date(visitor.checkInTime);
       visitorDate.setHours(0, 0, 0, 0);
@@ -326,12 +257,13 @@ export const useVisitors = () => {
   const getHistoryVisitors = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    return visitors.filter(visitor => {
-      const visitorDate = new Date(visitor.checkInTime);
-      visitorDate.setHours(0, 0, 0, 0);
-      return visitorDate.getTime() < today.getTime();
-    }).sort((a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime());
+    return visitors
+      .filter(visitor => {
+        const visitorDate = new Date(visitor.checkInTime);
+        visitorDate.setHours(0, 0, 0, 0);
+        return visitorDate.getTime() < today.getTime();
+      })
+      .sort((a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime());
   }, [visitors]);
 
   return {
