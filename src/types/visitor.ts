@@ -15,6 +15,26 @@ export interface Visitor {
   checkOutTime?: Date;
   status: 'checked-in' | 'checked-out';
   badgeNumber?: string;
+  checkInStaff?: string;
+  checkOutStaff?: string;
+  cancelCheckOutStaff?: string;
+}
+
+export interface VisitorFormInitialData {
+  name: string;
+  company: string;
+  department: string;
+  contactDepartment: string;
+  contactPerson: string;
+  purpose: string;
+  phone: string;
+  email: string;
+  hasParking: boolean;
+  vehicleNumber: string;
+  visitorCount: number | null;
+  selectedDepartmentId: string;
+  isOtherSelected: boolean;
+  otherPurposeText: string;
 }
 
 export interface VisitPurpose {

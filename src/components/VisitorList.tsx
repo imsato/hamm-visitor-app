@@ -6,9 +6,10 @@ interface VisitorListProps {
   visitors: Visitor[];
   onCheckOut: (visitorId: string) => void;
   onCancelCheckOut: (visitorId: string) => void;
+  operatorName: string;
 }
 
-const VisitorList: React.FC<VisitorListProps> = ({ visitors, onCheckOut, onCancelCheckOut }) => {
+const VisitorList: React.FC<VisitorListProps> = ({ visitors, onCheckOut, onCancelCheckOut, operatorName }) => {
   const formatTime = (date: Date) => {
     return date.toLocaleString('ja-JP', {
       month: '2-digit',
@@ -25,19 +26,27 @@ const VisitorList: React.FC<VisitorListProps> = ({ visitors, onCheckOut, onCance
     const confirmed = window.confirm(
       `${visitorName}様の退館を取り消して、在館中の状態に戻しますか？\n\n続行しますか？`
     );
-    
     if (confirmed) {
       onCancelCheckOut(visitorId);
     }
   };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
-          <h2 className="text-xl font-bold flex items-center space-x-2">
-            <CheckCircle className="w-6 h-6" />
-            <span>在館中の来客 ({activeVisitors.length}名)</span>
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center space-x-2">
+              <CheckCircle className="w-6 h-6" />
+              <span>在館中の来客 ({activeVisitors.length}名)</span>
+            </h2>
+            {operatorName && (
+              <div className="flex items-center gap-1 text-sm text-green-100">
+                <User className="w-4 h-4" />
+                <span>窓口担当: {operatorName}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="p-6">
@@ -108,15 +117,15 @@ const VisitorList: React.FC<VisitorListProps> = ({ visitors, onCheckOut, onCance
                 <div key={visitor.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm flex-1">
-                    <div>
-                      <span className="font-medium">{visitor.name}</span>
-                      <span className="text-gray-500 ml-2">({visitor.company})</span>
-                    </div>
-                    <div className="text-gray-600">{visitor.department}</div>
-                    <div className="text-gray-600">{formatTime(visitor.checkInTime)} 入館</div>
-                    <div className="text-gray-600">
-                      {visitor.checkOutTime && formatTime(visitor.checkOutTime)} 退館
-                    </div>
+                      <div>
+                        <span className="font-medium">{visitor.name}</span>
+                        <span className="text-gray-500 ml-2">({visitor.company})</span>
+                      </div>
+                      <div className="text-gray-600">{visitor.department}</div>
+                      <div className="text-gray-600">{formatTime(visitor.checkInTime)} 入館</div>
+                      <div className="text-gray-600">
+                        {visitor.checkOutTime && formatTime(visitor.checkOutTime)} 退館
+                      </div>
                     </div>
                     <button
                       onClick={() => handleCancelCheckOut(visitor.id, visitor.name)}

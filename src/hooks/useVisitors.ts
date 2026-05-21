@@ -74,6 +74,9 @@ export const useVisitors = () => {
               : data.checkOutTime ? new Date(data.checkOutTime) : undefined,
             status: data.status,
             badgeNumber: data.badgeNumber || undefined,
+            checkInStaff: data.checkInStaff || undefined,
+            checkOutStaff: data.checkOutStaff || undefined,
+            cancelCheckOutStaff: data.cancelCheckOutStaff || undefined,
           };
         });
 
@@ -113,14 +116,19 @@ export const useVisitors = () => {
     fetchVisitors();
   }, [fetchVisitors]);
 
-  const addVisitor = useCallback(async (visitorData: Omit<Visitor, 'id' | 'checkInTime' | 'status'>) => {
+  const addVisitor = useCallback(async (
+    visitorData: Omit<Visitor, 'id' | 'checkInTime' | 'status'>,
+    checkInStaff?: string,
+    checkInTime?: Date
+  ) => {
     try {
-      const checkInTime = new Date();
+      const actualCheckInTime = checkInTime || new Date();
       const newVisitor: Visitor = {
         id: crypto.randomUUID(),
         name: visitorData.name,
         company: visitorData.company,
         department: visitorData.department,
+        contactDepartment: visitorData.contactDepartment,
         contactPerson: visitorData.contactPerson,
         purpose: visitorData.purpose,
         phone: visitorData.phone,
@@ -128,9 +136,10 @@ export const useVisitors = () => {
         visitorCount: visitorData.visitorCount || 1,
         hasParking: visitorData.hasParking,
         vehicleNumber: visitorData.vehicleNumber || undefined,
-        checkInTime,
+        checkInTime: actualCheckInTime,
         status: 'checked-in',
         badgeNumber: undefined,
+        checkInStaff: checkInStaff || undefined,
       };
 
       if (!useLocalStorage) {
@@ -148,10 +157,13 @@ export const useVisitors = () => {
             visitorCount: visitorData.visitorCount || 1,
             hasParking: visitorData.hasParking,
             vehicleNumber: visitorData.vehicleNumber || null,
-            checkInTime: Timestamp.fromDate(checkInTime),
+            checkInTime: Timestamp.fromDate(actualCheckInTime),
             checkOutTime: null,
             status: 'checked-in',
             badgeNumber: null,
+            checkInStaff: checkInStaff || null,
+            checkOutStaff: null,
+            cancelCheckOutStaff: null,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });
@@ -175,7 +187,7 @@ export const useVisitors = () => {
     }
   }, [useLocalStorage]);
 
-  const checkOutVisitor = useCallback(async (visitorId: string) => {
+  const checkOutVisitor = useCallback(async (visitorId: string, checkOutStaff?: string) => {
     try {
       const visitor = visitors.find(v => v.id === visitorId);
       if (!visitor) throw new Error('来客者が見つかりません');
@@ -189,6 +201,7 @@ export const useVisitors = () => {
           await updateDoc(doc(db, 'visitors', visitorId), {
             status: 'checked-out',
             checkOutTime: Timestamp.fromDate(checkOutTime),
+            checkOutStaff: checkOutStaff || null,
             updatedAt: serverTimestamp(),
           });
         } catch (firebaseError) {
@@ -200,7 +213,7 @@ export const useVisitors = () => {
       setVisitors(prev => {
         const updated = prev.map(v =>
           v.id === visitorId
-            ? { ...v, status: 'checked-out' as const, checkOutTime }
+            ? { ...v, status: 'checked-out' as const, checkOutTime, checkOutStaff: checkOutStaff || undefined }
             : v
         );
         saveLocalData(updated);
@@ -212,7 +225,7 @@ export const useVisitors = () => {
     }
   }, [visitors, useLocalStorage]);
 
-  const cancelCheckOut = useCallback(async (visitorId: string) => {
+  const cancelCheckOut = useCallback(async (visitorId: string, cancelCheckOutStaff?: string) => {
     try {
       const visitor = visitors.find(v => v.id === visitorId);
       if (!visitor) throw new Error('来客者が見つかりません');
@@ -223,6 +236,7 @@ export const useVisitors = () => {
           await updateDoc(doc(db, 'visitors', visitorId), {
             status: 'checked-in',
             checkOutTime: null,
+            cancelCheckOutStaff: cancelCheckOutStaff || null,
             updatedAt: serverTimestamp(),
           });
         } catch (firebaseError) {
@@ -234,7 +248,7 @@ export const useVisitors = () => {
       setVisitors(prev => {
         const updated = prev.map(v =>
           v.id === visitorId
-            ? { ...v, status: 'checked-in' as const, checkOutTime: undefined }
+            ? { ...v, status: 'checked-in' as const, checkOutTime: undefined, cancelCheckOutStaff: cancelCheckOutStaff || undefined }
             : v
         );
         saveLocalData(updated);

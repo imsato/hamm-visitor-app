@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { Destination, Department, Staff } from '../types/visitor';
 
 export const useFormOptions = () => {
@@ -33,4 +33,18 @@ export const useFormOptions = () => {
   }, []);
 
   return { destinations, departments, staff, loading };
+};
+
+export const getStaffByStaffID = async (rawID: string): Promise<Staff | null> => {
+  const padded = rawID.trim().padStart(7, '0');
+  try {
+    const { db } = await import('../lib/firebase');
+    const q = query(collection(db, 'staff'), where('staffID', '==', padded));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const d = snap.docs[0];
+    return { id: d.id, ...d.data() } as Staff;
+  } catch {
+    return null;
+  }
 };
