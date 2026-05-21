@@ -1,12 +1,10 @@
 const admin = require('firebase-admin');
 
-// サービスアカウントのパース（private_keyの改行を正規化）
 let serviceAccount;
 try {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT が設定されていません');
   serviceAccount = JSON.parse(raw);
-  // GitHub Secrets経由で\nがエスケープされた場合の対処
   if (serviceAccount.private_key) {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
   }
@@ -22,27 +20,40 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+// destinations: firestoreId あり→更新、なし→新規追加
 async function importDestinations(data) {
   const col = db.collection('destinations');
-  for (const item of data) {
-    const ref = await col.add(item);
-    console.log(`  destinations: ${item.name} → ${ref.id}`);
+  for (const { firestoreId, ...fields } of data) {
+    if (firestoreId) {
+      await col.doc(firestoreId).set(fields);
+      console.log(`  destinations [更新]: ${fields.name} (${firestoreId})`);
+    } else {
+      const ref = await col.add(fields);
+      console.log(`  destinations [新規]: ${fields.name} → ${ref.id}`);
+    }
   }
 }
 
+// departments: 固定ID（id列）で常にupsert
 async function importDepartments(data) {
   const col = db.collection('departments');
   for (const { id, ...fields } of data) {
     await col.doc(id).set(fields);
-    console.log(`  departments: ${fields.depname} → ID: ${id}`);
+    console.log(`  departments [upsert]: ${fields.depname} (${id})`);
   }
 }
 
+// staff: firestoreId あり→更新、なし→新規追加
 async function importStaff(data) {
   const col = db.collection('staff');
-  for (const item of data) {
-    const ref = await col.add(item);
-    console.log(`  staff: ${item.staname} (${item.departmentId}) → ${ref.id}`);
+  for (const { firestoreId, ...fields } of data) {
+    if (firestoreId) {
+      await col.doc(firestoreId).set(fields);
+      console.log(`  staff [更新]: ${fields.staname} (${firestoreId})`);
+    } else {
+      const ref = await col.add(fields);
+      console.log(`  staff [新規]: ${fields.staname} → ${ref.id}`);
+    }
   }
 }
 

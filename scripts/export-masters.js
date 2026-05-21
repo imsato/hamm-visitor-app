@@ -42,8 +42,8 @@ function toCSV(headers, rows) {
 
 async function exportDestinations() {
   const snap = await db.collection('destinations').orderBy('order').get();
-  const rows = snap.docs.map(d => ({ ...d.data() }));
-  const csv = toCSV(['name', 'order'], rows);
+  const rows = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+  const csv = toCSV(['firestoreId', 'name', 'order'], rows);
   fs.writeFileSync(path.join(exportDir, 'destinations.csv'), '﻿' + csv, 'utf8');
   console.log(`destinations: ${rows.length}件 → export/destinations.csv`);
 }
