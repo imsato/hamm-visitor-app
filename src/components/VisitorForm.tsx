@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { User, Building, Phone, Mail, MessageSquare, Users, Send, Car } from 'lucide-react';
-import { Visitor, VisitPurpose } from '../types/visitor';
+import { Visitor, VisitorFormInitialData, VisitPurpose } from '../types/visitor';
 import { useFormOptions } from '../hooks/useFormOptions';
 
 interface VisitorFormProps {
-  onSubmit: (visitor: Omit<Visitor, 'id' | 'checkInTime' | 'status'>) => void;
+  onSubmit: (
+    visitor: Omit<Visitor, 'id' | 'checkInTime' | 'status'>,
+    formState: VisitorFormInitialData
+  ) => void;
   onCancel: () => void;
+  initialData?: VisitorFormInitialData;
 }
 
 const visitPurposes: VisitPurpose[] = [
@@ -17,26 +21,26 @@ const visitPurposes: VisitPurpose[] = [
   { id: '6', label: 'その他', category: 'other' },
 ];
 
-const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
+const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialData }) => {
   const { destinations, departments, staff } = useFormOptions();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    department: '',
-    contactDepartment: '',
-    contactPerson: '',
-    purpose: '',
-    phone: '',
-    email: '',
-    hasParking: false,
-    vehicleNumber: '',
-  });
+  const [formData, setFormData] = useState(() => ({
+    name: initialData?.name || '',
+    company: initialData?.company || '',
+    department: initialData?.department || '',
+    contactDepartment: initialData?.contactDepartment || '',
+    contactPerson: initialData?.contactPerson || '',
+    purpose: initialData?.purpose || '',
+    phone: initialData?.phone || '',
+    email: initialData?.email || '',
+    hasParking: initialData?.hasParking || false,
+    vehicleNumber: initialData?.vehicleNumber || '',
+  }));
 
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
-  const [otherPurposeText, setOtherPurposeText] = useState('');
-  const [isOtherSelected, setIsOtherSelected] = useState(false);
-  const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(() => initialData?.selectedDepartmentId || '');
+  const [otherPurposeText, setOtherPurposeText] = useState(() => initialData?.otherPurposeText || '');
+  const [isOtherSelected, setIsOtherSelected] = useState(() => initialData?.isOtherSelected || false);
+  const [visitorCount, setVisitorCount] = useState<number | null>(() => initialData?.visitorCount || null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const filteredStaff = selectedDepartmentId
@@ -114,12 +118,22 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit({
+      const formState: VisitorFormInitialData = {
         ...formData,
-        visitorCount: visitorCount!,
-        hasParking: formData.hasParking,
-        vehicleNumber: formData.hasParking ? formData.vehicleNumber : undefined,
-      });
+        visitorCount,
+        selectedDepartmentId,
+        isOtherSelected,
+        otherPurposeText,
+      };
+      onSubmit(
+        {
+          ...formData,
+          visitorCount: visitorCount!,
+          hasParking: formData.hasParking,
+          vehicleNumber: formData.hasParking ? formData.vehicleNumber : undefined,
+        },
+        formState
+      );
     }
   };
 
@@ -131,7 +145,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 来客人数 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             <Users className="inline w-4 h-4 mr-1" />
@@ -164,7 +177,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           {errors.visitorCount && <p className="mt-1 text-sm text-red-600">{errors.visitorCount}</p>}
         </div>
 
-        {/* 名前・会社名 */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -199,7 +211,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* 訪問先 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             <Building className="inline w-4 h-4 mr-1" />
@@ -219,14 +230,12 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           {errors.department && <p className="mt-1 text-sm text-red-600">{errors.department}</p>}
         </div>
 
-        {/* 面会担当者（2段階） */}
         <div className="space-y-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
           <p className="text-sm font-medium text-gray-700">
             <User className="inline w-4 h-4 mr-1" />
             面会担当者 *
           </p>
 
-          {/* Step 1: 面会部署 */}
           <div>
             <label className="block text-xs text-gray-500 mb-1">Step 1　面会部署を選択</label>
             <select
@@ -242,7 +251,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
             {errors.contactDepartment && <p className="mt-1 text-sm text-red-600">{errors.contactDepartment}</p>}
           </div>
 
-          {/* Step 2: 面会担当者 */}
           <div>
             <label className="block text-xs text-gray-500 mb-1">Step 2　担当者を選択</label>
             <select
@@ -264,7 +272,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* 訪問目的 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             <MessageSquare className="inline w-4 h-4 mr-1" />
@@ -303,7 +310,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           {errors.purpose && <p className="mt-1 text-sm text-red-600">{errors.purpose}</p>}
         </div>
 
-        {/* 電話・メール */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -338,7 +344,6 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* 駐車 */}
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -383,7 +388,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel }) => {
             className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-4 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
           >
             <Send className="w-5 h-5" />
-            <span>受付を完了する</span>
+            <span>入力を完了する</span>
           </button>
           <button
             type="button"
