@@ -5,5 +5,7 @@
   { "name": "８階 大教室",   "order": 4 },
   { "name": "事務室",        "order": 5 },
   { "name": "校長室",        "order": 6 },
+  { "name": "屋上・エレベーター",        "order": 7 },
+  { "name": "1階校舎周辺",        "order": 8 },
   { "name": "その他 校舎内", "order": 7 }
 ]
