@@ -37,7 +37,7 @@ export interface Department {
 
 export interface Staff {
   id: string;
-  staffID: number;
+  staffID: string;
   staname: string;
   statitle: string | null;
   departmentId: string;
