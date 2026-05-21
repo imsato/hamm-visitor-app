@@ -1,6 +1,20 @@
 const admin = require('firebase-admin');
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+// サービスアカウントのパース（private_keyの改行を正規化）
+let serviceAccount;
+try {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT が設定されていません');
+  serviceAccount = JSON.parse(raw);
+  // GitHub Secrets経由で\nがエスケープされた場合の対処
+  if (serviceAccount.private_key) {
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+  }
+  console.log(`プロジェクトID: ${serviceAccount.project_id}`);
+} catch (err) {
+  console.error('サービスアカウントのパースに失敗:', err.message);
+  process.exit(1);
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
