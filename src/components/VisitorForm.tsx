@@ -41,6 +41,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
   const [otherPurposeText, setOtherPurposeText] = useState(() => initialData?.otherPurposeText || '');
   const [isOtherSelected, setIsOtherSelected] = useState(() => initialData?.isOtherSelected || false);
   const [visitorCount, setVisitorCount] = useState<number | null>(() => initialData?.visitorCount || null);
+  const [actualCount, setActualCount] = useState<string>(() => initialData?.actualCount || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const filteredStaff = selectedDepartmentId
@@ -87,13 +88,22 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
 
   const handleVisitorCountSelect = (count: number) => {
     setVisitorCount(count);
+    if (count !== 4) setActualCount('');
     if (errors.visitorCount) setErrors(prev => ({ ...prev, visitorCount: '' }));
+    if (errors.actualCount) setErrors(prev => ({ ...prev, actualCount: '' }));
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!visitorCount) newErrors.visitorCount = '来客人数は必須です';
+    if (!visitorCount) {
+      newErrors.visitorCount = '来客人数は必須です';
+    } else if (visitorCount === 4) {
+      const n = parseInt(actualCount, 10);
+      if (!actualCount || isNaN(n) || n < 4) {
+        newErrors.actualCount = '4以上の人数を入力してください';
+      }
+    }
     if (!formData.name.trim()) newErrors.name = 'お名前は必須です';
     if (!formData.company.trim()) newErrors.company = '会社名・団体名は必須です';
     if (!formData.department) newErrors.department = '訪問先は必須です';
@@ -121,6 +131,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
       const formState: VisitorFormInitialData = {
         ...formData,
         visitorCount,
+        actualCount,
         selectedDepartmentId,
         isOtherSelected,
         otherPurposeText,
@@ -128,7 +139,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
       onSubmit(
         {
           ...formData,
-          visitorCount: visitorCount!,
+          visitorCount: visitorCount === 4 ? parseInt(actualCount, 10) : visitorCount!,
           hasParking: formData.hasParking,
           vehicleNumber: formData.hasParking ? formData.vehicleNumber : undefined,
         },
@@ -175,6 +186,23 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
             ))}
           </div>
           {errors.visitorCount && <p className="mt-1 text-sm text-red-600">{errors.visitorCount}</p>}
+          {visitorCount === 4 && (
+            <div className="mt-3">
+              <label className="block text-sm text-gray-600 mb-1">来客人数を入力 *</label>
+              <input
+                type="number"
+                min={4}
+                value={actualCount}
+                onChange={e => {
+                  setActualCount(e.target.value);
+                  if (errors.actualCount) setErrors(prev => ({ ...prev, actualCount: '' }));
+                }}
+                className={`w-40 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${errors.actualCount ? 'border-red-300' : 'border-gray-300'}`}
+                placeholder="4以上"
+              />
+              {errors.actualCount && <p className="mt-1 text-sm text-red-600">{errors.actualCount}</p>}
+            </div>
+          )}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -314,7 +342,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Phone className="inline w-4 h-4 mr-1" />
-              電話番号
+              電話番号（省略可）
             </label>
             <input
               type="tel"
@@ -330,7 +358,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, onCancel, initialDa
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Mail className="inline w-4 h-4 mr-1" />
-              メールアドレス
+              メールアドレス（省略可）
             </label>
             <input
               type="email"

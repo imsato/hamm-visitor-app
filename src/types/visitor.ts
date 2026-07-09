@@ -32,6 +32,7 @@ export interface VisitorFormInitialData {
   hasParking: boolean;
   vehicleNumber: string;
   visitorCount: number | null;
+  actualCount: string;
   selectedDepartmentId: string;
   isOtherSelected: boolean;
   otherPurposeText: string;
