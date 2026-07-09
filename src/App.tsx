@@ -177,10 +177,10 @@ function App() {
       case 'list-verify':
         return (
           <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">来客管理</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">退館手続き</h2>
             <StaffIDVerify
               title="担当職員番号を入力してください"
-              confirmLabel="来客管理画面へ"
+              confirmLabel="退館手続き画面へ"
               cancelLabel="ホームに戻る"
               onConfirm={handleListOperatorVerified}
               onCancel={handleBackToHome}
@@ -228,7 +228,7 @@ function App() {
                 className="group bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white p-8 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
               >
                 <List className="w-16 h-16 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                <h3 className="text-2xl font-bold mb-2">来客管理</h3>
+                <h3 className="text-2xl font-bold mb-2">退館手続き</h3>
                 <p className="text-green-100">在館者一覧・退館手続き</p>
               </button>
             </div>
