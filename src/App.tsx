@@ -286,7 +286,7 @@ function App() {
 
       <footer className="bg-white border-t border-gray-200 py-6 mt-12">
         <div className="max-w-6xl mx-auto text-center text-gray-600">
-          <p>&copy; 2024 浜松未来総合専門学校 来客受付システム</p>
+          <p>&copy;  浜松未来総合専門学校 来客受付システム</p>
         </div>
       </footer>
 
